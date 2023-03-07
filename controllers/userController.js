@@ -7,7 +7,8 @@ import crypto from 'crypto';
 import { Course } from '../models/Course.js';
 import cloudinary from 'cloudinary';
 import getDataUri from '../utils/dataUri.js';
-
+// import { Stats } from "fs";
+import { Stats } from "../models/Stats.js";
 export const register = catchAsyncError(async (req, res, next) => {
     const { name, email, password } = req.body;
     const file = req.file;
@@ -284,7 +285,7 @@ export const deleteToPlayList = catchAsyncError(async (req, res, next) => {
 // adimin controlars
 export const getAllUsers = catchAsyncError(async (req, res, next) => {
 
-   const users = await User.find({});
+    const users = await User.find({});
 
     res.status(200).json({
         success: true,
@@ -296,15 +297,15 @@ export const getAllUsers = catchAsyncError(async (req, res, next) => {
 
 export const updateUserRole = catchAsyncError(async (req, res, next) => {
 
-   const user = await User.findById(req.params.id);
-   if(!user) return next(new ErrorHandler("user is not found",404));
+    const user = await User.findById(req.params.id);
+    if (!user) return next(new ErrorHandler("user is not found", 404));
 
-   if(user.role === "user") user.role = "admin";
-   else user.role = "user";
-   await user.save();
+    if (user.role === "user") user.role = "admin";
+    else user.role = "user";
+    await user.save();
     res.status(200).json({
         success: true,
-        massage:"user role updated",
+        massage: "user role updated",
     });
 
 });
@@ -312,16 +313,16 @@ export const updateUserRole = catchAsyncError(async (req, res, next) => {
 
 export const deleteUser = catchAsyncError(async (req, res, next) => {
 
-   const user = await User.findById(req.params.id);
-   if(!user) return next(new ErrorHandler("user is not found",404));
+    const user = await User.findById(req.params.id);
+    if (!user) return next(new ErrorHandler("user is not found", 404));
 
     // cancel subscrioption
 
-   await cloudinary.v2.uploader.destroy(user.avatar.public_id);
-   await user.remove();
+    await cloudinary.v2.uploader.destroy(user.avatar.public_id);
+    await user.remove();
     res.status(200).json({
         success: true,
-        massage:"user has been delete",
+        massage: "user has been delete",
     });
 
 });
@@ -329,20 +330,33 @@ export const deleteUser = catchAsyncError(async (req, res, next) => {
 
 export const deleteMyProfile = catchAsyncError(async (req, res, next) => {
 
-   const user = await User.findById(req.user._id);
-   if(!user) return next(new ErrorHandler("user is not found",404));
+    const user = await User.findById(req.user._id);
+    if (!user) return next(new ErrorHandler("user is not found", 404));
 
     // cancel subscrioption
 
-   await cloudinary.v2.uploader.destroy(user.avatar.public_id);
-   await user.remove();
+    await cloudinary.v2.uploader.destroy(user.avatar.public_id);
+    await user.remove();
 
 
-    res.status(200).cookie("token",null,{
-        expires:new Date(Date.now()),
+    res.status(200).cookie("token", null, {
+        expires: new Date(Date.now()),
     }).json({
         success: true,
-        massage:"user has been delete",
+        massage: "user has been delete",
     });
 
+});
+
+User.watch().on("change", async () => {
+    const stats = await Stats.find({}).sort({ createAt: "desc" }).limit(1);
+
+    const subscription = await User.find({ "subscription.status": "active" });
+
+    stats[0].users = User.countDocuments;
+    stats[0].subscription = subscription.length;
+
+    stats[0].createAt = new Date(Date.now);
+
+    await stats[0].save();
 });

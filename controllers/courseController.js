@@ -4,7 +4,7 @@ import ErrorHandler from "../utils/errorHandler.js";
 import getDataUri from "../utils/dataUri.js";
 import cloudinary from 'cloudinary';
 // import  ErrorMidilware  from "../middlewares/Error.js";
-
+import { Stats } from "../models/Stats.js";
 
 export const getAllCourses = catchAsyncError(async(req,res,next) =>{
     const keyword  = req.query.keyword || "";
@@ -174,6 +174,25 @@ export const deleteLecture = catchAsyncError(async (req, res, next) => {
     }); 
 
 
+});
+
+
+Course.watch().on("change", async () => {
+    const stats = await Stats.find({}).sort({ createAt: "desc" }).limit(1);
+
+    const course = await Course.find({});
+
+    let totalView = 0;
+
+
+   for(let i=0;i<course.length;i++){
+    totalView+=course[0].views;
+   }
+  
+      stats[0].views=totalView;
+
+      stats[0].createAt = new Date(Date.now);
+      await stats[0].save();
 });
 
 // export const createCourses = async (req ,res)=>{

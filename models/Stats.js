@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const schema = new mongoose.schema({
+const schema = new mongoose.Schema({
     users:{
         type:Number,
         default:0,
