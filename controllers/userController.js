@@ -356,7 +356,7 @@ User.watch().on("change", async () => {
     stats[0].users = User.countDocuments;
     stats[0].subscription = subscription.length;
 
-    stats[0].createAt = new Date(Date.now);
+    stats[0].createdAt = new Date(Date.now);
 
     await stats[0].save();
 });
