@@ -32,7 +32,7 @@ app.use(
         credentials: true,
         methods: ["GET", "POST", "DELETE", "PUT"]
     })
-)
+);
 
 import course from "./routes/courseRoutes.js";
 import user from './routes/userRoutes.js'
@@ -46,7 +46,7 @@ app.use("/api/v1", user);
 export default app;
 
 app.get("/", (req, res) => {
-    res.send(`<h1>site is working ,to visete fronted click here<a>${process.env.FRONTED_URL}</a></h1>`)
+    res.send(`<h1>site is working ,to visete fronted click here<a href=${process.env.FRONTED_URL}></a></h1>`)
 })
 
 app.use(ErrorMidilware);
